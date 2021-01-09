@@ -1,0 +1,22 @@
+name: VyOS-1.3-beta
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Pull VyOS Docker image
+      run: |
+        git clone -b equuleus --single-branch https://github.com/vyos/vyos-build
+        docker pull vyos/vyos-build:equuleus
+    - name: Build iso
+      run: |
+        docker run --rm --privileged -v $(pwd)/vyos-build:/vyos -w /vyos vyos/vyos-build:equuleus  bash -c './configure --architecture amd64 --build-by "Hazaki" && sudo make iso'
+    - name: Upload iso
+      uses: actions/upload-artifact@main
+      with:
+        name: vyos-1.3-beta
+        path: 'vyos-build/build/live-image-amd64.hybrid.iso'
